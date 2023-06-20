@@ -5,8 +5,6 @@ import collections.abc
 import json
 import pandas as pd
 from pptx import Presentation
-from pptx.parts.chart import ChartPart
-from pptx.parts.embeddedpackage import EmbeddedXlsxPart
 
 # IMPORTANT: MUST NAME SLIDE SHAPES https://www.youtube.com/watch?v=IhES3of_9Nw
 
@@ -15,31 +13,11 @@ EXCEL_SHEET_NAME = "Raw Data"
 HEADER_ROW = 3
 TARGET_COLUMN = "Quote Name"
 SEARCH_TERM = "Cyrus"
-RELEVANT_COLUMNS = {"Provider" : "provider",
-                    "Market" : "mkt",
-                    "Product Description" : "prod_type",
-                    "Num. Cabinets" : "num_cabs",
-                    "IP Bandwidth (Mbps)" : "bandwidth",
-                    "Cloud Connect (Mbps)" : "cc_bandwidth",
-                    "Term (mths.)" : "term",
-                    "MRC per kW" : "mrc_kw",
-                    "Colo NRC/Cab" : "nrc_cab",
-                    "IP MRC/MB" : "ip_mrc",
-                    "IP NRC" : "ip_nrc",
-                    "IP Burst Rate" : "burstrate",
-                    "XC MRC/unit" : "xc_mrc",
-                    "Total XCs NRC" : "xc_nrc",
-                    "Cloud Connect MRC" : "azure_mrc", # Azure
-                    "Cloud Connect NRC" : "azure_nrc", # Azure
-                    "Cloud Connect MRC.1" : "aws_mrc", # AWS
-                    "Cloud Connect NRC.1" : "aws_nrc", # AWS
-                    "Business Hours" : "rh_business", # REMOTE HANDS
-                    "Off-Business Hours" : "rh_offbusiness",
-                    "Bundled Offerings" : "rh_bundle"
-}
 
-with open("text.json", "r") as json_file:
-    ELEMENT_TO_FSTRING = json.load(json_file)
+with open("columns.json", "r") as columns_file:
+    RELEVANT_COLUMNS = json.load(columns_file)
+with open("text.json", "r") as text_file:
+    ELEMENT_TO_FSTRING = json.load(text_file)
 
 def search_excel_sheet(filepath : str, sheet : str, header_row : int, target_column : str, search_term : str) -> pd.DataFrame:
     # Read the Excel file into a DataFrame

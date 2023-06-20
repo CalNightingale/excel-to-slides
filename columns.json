@@ -1,0 +1,23 @@
+{
+    "Provider" : "provider",
+    "Market" : "mkt",
+    "Product Description" : "prod_type",
+    "Num. Cabinets" : "num_cabs",
+    "IP Bandwidth (Mbps)" : "bandwidth",
+    "Cloud Connect (Mbps)" : "cc_bandwidth",
+    "Term (mths.)" : "term",
+    "MRC per kW" : "mrc_kw",
+    "Colo NRC/Cab" : "nrc_cab",
+    "IP MRC/MB" : "ip_mrc",
+    "IP NRC" : "ip_nrc",
+    "IP Burst Rate" : "burstrate",
+    "XC MRC/unit" : "xc_mrc",
+    "Total XCs NRC" : "xc_nrc",
+    "Cloud Connect MRC" : "azure_mrc",
+    "Cloud Connect NRC" : "azure_nrc",
+    "Cloud Connect MRC.1" : "aws_mrc",
+    "Cloud Connect NRC.1" : "aws_nrc",
+    "Business Hours" : "rh_business",
+    "Off-Business Hours" : "rh_offbusiness",
+    "Bundled Offerings" : "rh_bundle"
+}
