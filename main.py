@@ -22,8 +22,6 @@ with open("text.json", "r") as text_file:
 def search_excel_sheet(filepath : str, sheet : str, header_row : int, target_column : str, search_term : str) -> pd.DataFrame:
     # Read the Excel file into a DataFrame
     df = pd.read_excel(filepath, sheet_name=sheet, header=header_row)
-    #print(df.head())
-    
     # Get all rows that correspond to the search term
     returned_rows = df[df[target_column].str.contains(search_term)]
     # Keep only the specified columns
@@ -76,7 +74,5 @@ def generate_slide(index, provider):
     pres.save("template_slide.pptx")
     return index
 
-#with open("dump.json", 'w') as file:
-#    json.dump(ELEMENT_TO_FSTRING, file)
+
 generate_slide(1, "123")
-#company_data = search_excel_sheet(EXCEL_FILEPATH, EXCEL_SHEET_NAME, HEADER_ROW, TARGET_COLUMN, SEARCH_TERM)
