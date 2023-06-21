@@ -21,6 +21,8 @@ with open("text.json", "r") as text_file:
     ELEMENT_TO_FSTRING = json.load(text_file)
 with open("charts.json", "r") as charts_file:
     CHARTS = json.load(charts_file)
+with open("tables.json", "r") as tables_file:
+    TABLES = json.load(tables_file)
 
 def search_excel_sheet(filepath : str, sheet : str, header_row : int, target_column : str, search_term : str) -> pd.DataFrame:
     # Read the Excel file into a DataFrame
@@ -59,7 +61,7 @@ def get_shape_by_name(slide, shape_name):
     # If not found, now check shapes (recursively to check groups)
     return find_shape_in_group(slide, shape_name)
 
-def update_charts(pptx : Powerpoint, provider_data : dict, slide_index : int) -> None:
+def update_charts(pptx : Powerpoint, slide_index : int, provider_data : dict) -> None:
     for chart_name, data_cols in CHARTS.items():
         # Retrieve data for chart as per charts.json
         values = [provider_data.get(data_col) for data_col in data_cols]
@@ -69,6 +71,10 @@ def update_charts(pptx : Powerpoint, provider_data : dict, slide_index : int) ->
             if not isinstance(value, list):
                 values[i] = [value] * max_len
         pptx.set_chart_data(PPTX_PATH, slide_index, chart_name, values)
+
+def update_tables(pptx: Powerpoint, slide_index : int, provider_data : dict) -> None:
+    for table_name, function_name in TABLES.items():
+        pptx.update_table(slide_index, table_name, provider_data, function_name)
 
 # TODO Add slide duplication when they resolve this git issue https://github.com/scanny/python-pptx/issues/132
 # Until then, workaround is to manually copy/paste the template slide n times
@@ -90,11 +96,13 @@ def generate_slide(slide_index, provider):
     pptx = Powerpoint(r"C:/Users/cnightingale/excel2slides/template_slide.pptx")
 
     # Manipulate slide
+    print("Updating tables")
+    update_tables(pptx, slide_index, provider_data)
     print("Updating text objects")
     update_text(pptx, slide_index, provider_data)
 
     print("Updating charts")   
-    update_charts(pptx, provider_data, slide_index)
+    #update_charts(pptx, slide_index, provider_data)
     pptx.close()
     return slide_index
 

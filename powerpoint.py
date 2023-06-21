@@ -1,4 +1,5 @@
 import win32com.client
+import utils
 import json
 
 class Powerpoint:
@@ -22,6 +23,16 @@ class Powerpoint:
         if not element.HasTextFrame:
             raise Exception(f"Tried to set text for element '{element}' which does not have a text field")
         element.TextFrame.TextRange.Text = new_text
+
+    def update_table(self, slide_index, table_name, data, function_name):
+        try:
+            function = getattr(utils, function_name)
+        except:
+            raise Exception(f"Failed to get function '{function_name}... are you sure it is in utils.py?")
+        slide = self.presentation.Slides(slide_index)
+        table = slide.Shapes(table_name).Table
+        function(table, data)
+
 
     def pivot_input_data(self, data):
         transposed_list = []
@@ -53,13 +64,10 @@ class Powerpoint:
         try:
             # Modify the chart data
             chart.ChartData.Activate()  # Activate the chart data worksheet
-
             # Access the specific range where the data is stored
-            data_range = chart.ChartData.Workbook.Worksheets(1).Range("A2:B4")
-            
+            data_range = chart.ChartData.Workbook.Worksheets(1).Range("A2:B4")           
             # Update the values in the range
-            data_range.Value = values_for_chart
-            
+            data_range.Value = values_for_chart           
             # Close the workbook
             chart.ChartData.Workbook.Close()
             
