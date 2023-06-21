@@ -5,9 +5,6 @@ SHAPE_NAME = "mrc_chart"
 # Create an instance of the PowerPoint application
 powerpoint = win32com.client.Dispatch("PowerPoint.Application")
 
-# Set to invisible
-#powerpoint.Visible = False
-
 # Open the PowerPoint presentation
 presentation = powerpoint.Presentations.Open(r"C:/Users/cnightingale/excel2slides/template_slide.pptx", WithWindow=False)
 
@@ -27,12 +24,12 @@ print("Retrieved chart")
 try:
     # Modify the chart data
     chart.ChartData.Activate()  # Activate the chart data worksheet
-    
+
     # Access the specific range where the data is stored
     data_range = chart.ChartData.Workbook.Worksheets(1).Range("A1:B3")
     
     # Update the values in the range
-    data_range.Value = [[1, "MRC"], ["DET (Cage)", 400], ["DET (Cab.)", 350]]
+    data_range.Value = [[None, "MRC"], ["DET (Cage)", 400], ["DET (Cab.)", 350]]
     
     # Close the workbook
     chart.ChartData.Workbook.Close()
