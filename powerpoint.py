@@ -1,4 +1,5 @@
 import win32com.client
+import json
 
 class Powerpoint:
     def __init__(self, pptx_path):
@@ -7,12 +8,20 @@ class Powerpoint:
         self.presentation = self.instance.Presentations.Open(pptx_path, WithWindow=False)
 
     def close(self):
+        # Save the presentation
+        self.presentation.SaveAs(r"C:/Users/cnightingale/excel2slides/template_slide_modified.pptx")
         # Close the presentation
         self.presentation.Close()
-
         # Quit the PowerPoint application
         self.instance.Quit()
         print("Quit out cleanly")
+
+    def update_text(self, slide_index, element_name, new_text):
+        slide = self.presentation.Slides(slide_index)
+        element = slide.Shapes(element_name)
+        if not element.HasTextFrame:
+            raise Exception(f"Tried to set text for element '{element}' which does not have a text field")
+        element.TextFrame.TextRange.Text = new_text
 
     def pivot_input_data(self, data):
         transposed_list = []
@@ -30,7 +39,6 @@ class Powerpoint:
     def set_chart_data(self, pptx_path : str, slide_index : int, chart_name : str, data):
         values_for_chart = self.pivot_input_data(data)
         # Get a reference to the slide containing the chart
-        slide_index = 1  # Specify the index of the slide
         slide = self.presentation.Slides(slide_index)
         print("Retrieved slide")
 
@@ -54,8 +62,6 @@ class Powerpoint:
             
             # Close the workbook
             chart.ChartData.Workbook.Close()
-            # Save the presentation
-            self.presentation.SaveAs(r"C:/Users/cnightingale/excel2slides/template_slide_modified.pptx")
             
         except Exception as e:
             print("An error occurred:", str(e))

@@ -4,8 +4,7 @@ import collections
 import collections.abc
 import json
 import pandas as pd
-from pptx import Presentation
-from modify_chart import Powerpoint
+from powerpoint import Powerpoint
 
 # IMPORTANT: MUST NAME SLIDE SHAPES https://www.youtube.com/watch?v=IhES3of_9Nw
 
@@ -35,12 +34,10 @@ def search_excel_sheet(filepath : str, sheet : str, header_row : int, target_col
     # Convert DataFrame to dictionary
     dict_data = named_data.to_dict(orient='list')
     # Check for columns with a single unique value
-    collapse_same_vals = False
-    if collapse_same_vals:
-        for column_name, values in dict_data.items():
-            unique_values = set(values)
-            if len(unique_values) == 1:
-                dict_data[column_name] = unique_values.pop()
+    for column_name, values in dict_data.items():
+        unique_values = set(values)
+        if len(unique_values) == 1:
+            dict_data[column_name] = unique_values.pop()
 
     return dict_data
 
@@ -62,24 +59,23 @@ def get_shape_by_name(slide, shape_name):
     # If not found, now check shapes (recursively to check groups)
     return find_shape_in_group(slide, shape_name)
 
-def update_charts(pptx : Powerpoint, provider_data : dict, slide_index : int):
+def update_charts(pptx : Powerpoint, provider_data : dict, slide_index : int) -> None:
     for chart_name, data_cols in CHARTS.items():
         # Retrieve data for chart as per charts.json
         values = [provider_data.get(data_col) for data_col in data_cols]
+        # Un-collapse data if values for different categories were identical
+        max_len = max([len(col) if isinstance(col, list) else 0 for col in values])
+        for i, value in enumerate(values):
+            if not isinstance(value, list):
+                values[i] = [value] * max_len
         pptx.set_chart_data(PPTX_PATH, slide_index, chart_name, values)
 
 # TODO Add slide duplication when they resolve this git issue https://github.com/scanny/python-pptx/issues/132
 # Until then, workaround is to manually copy/paste the template slide n times
-def update_text(slide):
+def update_text(pptx : Powerpoint, slide_index : int, provider_data) -> None:
     for element_name, fstring in ELEMENT_TO_FSTRING.items():
-        element = get_shape_by_name(slide, element_name)
-        if not element.has_text_frame:
-            raise Exception(f"Tried to set text for element '{element}' which does not have a text field")
         text = fstring.format(**provider_data)
-        #print(text)
-        for paragraph in element.text_frame.paragraphs:
-            for run in paragraph.runs:
-                run.text = text
+        pptx.update_text(slide_index, element_name, text)
 
 def generate_slide(slide_index, provider):
     print(f"Generating slide for provider '{provider}'")
@@ -91,13 +87,13 @@ def generate_slide(slide_index, provider):
 
     # Get the desired slide from the template
     #slide = pres.slides[index]
+    pptx = Powerpoint(r"C:/Users/cnightingale/excel2slides/template_slide.pptx")
 
     # Manipulate slide
-    #print("Updating text objects")
-    #update_text(slide)
+    print("Updating text objects")
+    update_text(pptx, slide_index, provider_data)
 
-    print("Updating charts")
-    pptx = Powerpoint(r"C:/Users/cnightingale/excel2slides/template_slide.pptx")
+    print("Updating charts")   
     update_charts(pptx, provider_data, slide_index)
     pptx.close()
     return slide_index
