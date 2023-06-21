@@ -5,7 +5,7 @@ import collections.abc
 import json
 import pandas as pd
 from pptx import Presentation
-from modify_chart import set_chart_data
+from modify_chart import Powerpoint
 
 # IMPORTANT: MUST NAME SLIDE SHAPES https://www.youtube.com/watch?v=IhES3of_9Nw
 
@@ -62,11 +62,11 @@ def get_shape_by_name(slide, shape_name):
     # If not found, now check shapes (recursively to check groups)
     return find_shape_in_group(slide, shape_name)
 
-def update_charts(provider_data, slide_index):
+def update_charts(pptx : Powerpoint, provider_data : dict, slide_index : int):
     for chart_name, data_cols in CHARTS.items():
         # Retrieve data for chart as per charts.json
         values = [provider_data.get(data_col) for data_col in data_cols]
-        set_chart_data(PPTX_PATH, slide_index, chart_name, values)
+        pptx.set_chart_data(PPTX_PATH, slide_index, chart_name, values)
 
 # TODO Add slide duplication when they resolve this git issue https://github.com/scanny/python-pptx/issues/132
 # Until then, workaround is to manually copy/paste the template slide n times
@@ -97,9 +97,10 @@ def generate_slide(slide_index, provider):
     #update_text(slide)
 
     print("Updating charts")
-    update_charts(provider_data, slide_index)
-    #pres.save("template_slide.pptx")
-    return index
+    pptx = Powerpoint(r"C:/Users/cnightingale/excel2slides/template_slide.pptx")
+    update_charts(pptx, provider_data, slide_index)
+    pptx.close()
+    return slide_index
 
 
 generate_slide(1, "Cyrus")
