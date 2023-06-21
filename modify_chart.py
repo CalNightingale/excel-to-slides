@@ -6,10 +6,10 @@ SHAPE_NAME = "mrc_chart"
 powerpoint = win32com.client.Dispatch("PowerPoint.Application")
 
 # Set to invisible
-powerpoint.Visible = 1
+#powerpoint.Visible = False
 
 # Open the PowerPoint presentation
-presentation = powerpoint.Presentations.Open(r"C:/Users/cnightingale/excel2slides/template_slide.pptx")
+presentation = powerpoint.Presentations.Open(r"C:/Users/cnightingale/excel2slides/template_slide.pptx", WithWindow=False)
 
 # Get a reference to the slide containing the chart
 slide_index = 1  # Specify the index of the slide
@@ -34,6 +34,7 @@ try:
     # Update the values in the range
     data_range.Value = [[1, "MRC"], ["DET (Cage)", 400], ["DET (Cab.)", 350]]
     
+    # Close the workbook
     chart.ChartData.Workbook.Close()
 
     # Save the presentation
