@@ -24,14 +24,14 @@ class Powerpoint:
             raise Exception(f"Tried to set text for element '{element}' which does not have a text field")
         element.TextFrame.TextRange.Text = new_text
 
-    def update_table(self, slide_index, table_name, data, function_name):
+    def update_other(self, slide_index, element_name, data, function_name):
         try:
             function = getattr(utils, function_name)
         except:
-            raise Exception(f"Failed to get function '{function_name}... are you sure it is in utils.py?")
+            raise Exception(f"Failed to get function '{function_name}'... are you sure it is in utils.py?")
         slide = self.presentation.Slides(slide_index)
-        table = slide.Shapes(table_name).Table
-        function(table, data)
+        element = slide.Shapes(element_name)
+        function(element, data)
 
 
     def pivot_input_data(self, data):
