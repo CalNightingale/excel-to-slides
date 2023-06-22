@@ -1,9 +1,12 @@
 import geopandas as gpd
 import matplotlib.pyplot as plt
 import json
+import os
 import pandas as pd
 
-def handle_mkt_map(element, provider_data):
+def handle_mkt_map(slide, element, provider_data):
+    name = element.name
+
     # Read geoJSON
     usa_url = "https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json"
     canada_url = "https://raw.githubusercontent.com/codeforgermany/click_that_hood/main/public/data/canada.geojson"
@@ -12,20 +15,29 @@ def handle_mkt_map(element, provider_data):
     # Parse down to only desired geography
     contiguous_usa_gdf = usa_gdf[usa_gdf['name'].isin(['Alaska', 'Hawaii', "Puerto Rico"]) == False]
     ontario_gdf = canada_gdf[canada_gdf['name'] == 'Ontario']
-    # Shift the geometry of Hawaii to a custom position
+    # Shift the geometry of Hawaii to custom position below NM
     shifted_hawaii = usa_gdf[usa_gdf['name'] == 'Hawaii'].copy()
     shifted_hawaii['geometry'] = shifted_hawaii['geometry'].translate(xoff=45, yoff=5)
-
+    # Plot
     fig, ax = plt.subplots(figsize=(10, 8))
     ax.set_aspect('auto')
-
+    ax.axis('off')
     contiguous_usa_gdf.plot(ax=ax, color='lightgray', edgecolor='black')
     shifted_hawaii.plot(ax=ax, color='lightgray', edgecolor='black')
     ontario_gdf.plot(ax=ax, color='lightblue', edgecolor='black')
+    # Save
+    plt.savefig('plot.png', dpi=300, bbox_inches='tight')
+    plt.close()
 
-    plt.axis('off')
-    plt.show()
-
+    # Update image
+    left = element.left
+    top = element.top
+    image_path = os.path.abspath("plot.png")
+    new_element = slide.Shapes.AddPicture(FileName=image_path, LinkToFile=False,
+                                          SaveWithDocument=True, Left=element.left,
+                                          Top=element.top, Width=element.width, Height=element.height)
+    element.Delete()
+    new_element.name = name
 
 
 """
@@ -37,7 +49,7 @@ To update, we need to
     (2) for each market row, check to see if the markets names we pulled from the excel match up
     (3) for each match, add a check mark to both presence? and quoted?
 """
-def handle_mkt_presence_table(element, provider_data):
+def handle_mkt_presence_table(slide, element, provider_data):
     table = element.Table
     presence_indication_character = "✔"
     for row_index in range(1, len(table.Rows) + 1):

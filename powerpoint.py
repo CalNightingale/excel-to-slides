@@ -31,7 +31,7 @@ class Powerpoint:
             raise Exception(f"Failed to get function '{function_name}'... are you sure it is in utils.py?")
         slide = self.presentation.Slides(slide_index)
         element = slide.Shapes(element_name)
-        function(element, data)
+        function(slide, element, data)
 
 
     def pivot_input_data(self, data):
