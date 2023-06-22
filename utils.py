@@ -12,16 +12,21 @@ def handle_mkt_map(element, provider_data):
     # Parse down to only desired geography
     contiguous_usa_gdf = usa_gdf[usa_gdf['name'].isin(['Alaska', 'Hawaii', "Puerto Rico"]) == False]
     ontario_gdf = canada_gdf[canada_gdf['name'] == 'Ontario']
+    # Shift the geometry of Hawaii to a custom position
+    shifted_hawaii = usa_gdf[usa_gdf['name'] == 'Hawaii'].copy()
+    shifted_hawaii['geometry'] = shifted_hawaii['geometry'].translate(xoff=45, yoff=5)
+
     fig, ax = plt.subplots(figsize=(10, 8))
     ax.set_aspect('auto')
 
     contiguous_usa_gdf.plot(ax=ax, color='lightgray', edgecolor='black')
+    shifted_hawaii.plot(ax=ax, color='lightgray', edgecolor='black')
     ontario_gdf.plot(ax=ax, color='lightblue', edgecolor='black')
 
     plt.axis('off')
     plt.show()
 
-    
+
 
 """
 This method is for market presence tables in mystery shopping decks.
