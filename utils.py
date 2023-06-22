@@ -12,19 +12,27 @@ def handle_mkt_map(slide, element, provider_data):
     canada_url = "https://raw.githubusercontent.com/codeforgermany/click_that_hood/main/public/data/canada.geojson"
     usa_gdf = gpd.read_file(usa_url)
     canada_gdf = gpd.read_file(canada_url)
+
+
+
     # Parse down to only desired geography
     contiguous_usa_gdf = usa_gdf[usa_gdf['name'].isin(['Alaska', 'Hawaii', "Puerto Rico"]) == False]
     ontario_gdf = canada_gdf[canada_gdf['name'] == 'Ontario']
-    # Shift the geometry of Hawaii to custom position below NM
-    shifted_hawaii = usa_gdf[usa_gdf['name'] == 'Hawaii'].copy()
-    shifted_hawaii['geometry'] = shifted_hawaii['geometry'].translate(xoff=45, yoff=5)
+    # Convert to projection (make it a little curved)
+    target_projection = 5070  # Alberts Equal Area Conic Projection
+    projected_usa = contiguous_usa_gdf.to_crs(target_projection)
+    projected_ontario = ontario_gdf.to_crs(target_projection)
+
+    # TODO Shift the geometry of Hawaii to custom position below NM 
+    #shifted_hawaii = usa_gdf[usa_gdf['name'] == 'Hawaii'].copy()
+    #shifted_hawaii['geometry'] = shifted_hawaii['geometry'].translate(xoff=1000000, yoff=0)
     # Plot
     fig, ax = plt.subplots(figsize=(10, 8))
     ax.set_aspect('auto')
     ax.axis('off')
-    contiguous_usa_gdf.plot(ax=ax, color='lightgray', edgecolor='black')
-    shifted_hawaii.plot(ax=ax, color='lightgray', edgecolor='black')
-    ontario_gdf.plot(ax=ax, color='lightblue', edgecolor='black')
+    projected_usa.plot(ax=ax, color='lightgray', edgecolor='black')
+    #shifted_hawaii.plot(ax=ax, color='lightgray', edgecolor='black')
+    projected_ontario.plot(ax=ax, color='lightblue', edgecolor='black')
     # Save
     plt.savefig('plot.png', dpi=300, bbox_inches='tight')
     plt.close()

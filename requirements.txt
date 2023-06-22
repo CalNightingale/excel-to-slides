@@ -3,4 +3,3 @@ openpyxl
 pywin32
 geopandas
 matplotlib
-cartopy
