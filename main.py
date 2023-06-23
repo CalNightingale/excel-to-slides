@@ -39,7 +39,7 @@ def search_excel_sheet(filepath : str, sheet : str, header_row : int, target_col
     for column_name, values in dict_data.items():
         unique_values = set(values)
         if len(unique_values) == 1:
-            dict_data[column_name] = unique_values.pop()
+            dict_data[column_name] = [unique_values.pop()]
 
     return dict_data
 
@@ -66,10 +66,10 @@ def update_charts(pptx : Powerpoint, slide, provider_data : dict) -> None:
         # Retrieve data for chart as per charts.json
         values = [provider_data.get(data_col) for data_col in data_cols]
         # Un-collapse data if values for different categories were identical
-        max_len = max([len(col) if isinstance(col, list) else 0 for col in values])
+        max_len = max([len(col) for col in values])
         for i, value in enumerate(values):
-            if not isinstance(value, list):
-                values[i] = [value] * max_len
+            if len(value) == 1:
+                values[i] = value * max_len
         pptx.set_chart_data(PPTX_PATH, slide, chart_name, values)
 
 def update_other(pptx: Powerpoint, slide, provider_data : dict) -> None:
@@ -103,7 +103,8 @@ def generate_all_slides():
     del all_excel_data
     # Create powerpoint
     pptx = Powerpoint(r"C:/Users/cnightingale/excel2slides/template_slide.pptx")
-    for provider in all_providers:
+    for provider in ['Zenlayer']:
+    #for provider in all_providers:
         slide = pptx.new_slide()
         generate_slide(pptx, slide, provider)
     pptx.close()
