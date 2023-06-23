@@ -1,6 +1,7 @@
 {
     "Provider" : "provider",
     "Market" : "mkt",
+    "State" : "state",
     "Product Description" : "prod_type",
     "Num. Cabinets" : "num_cabs",
     "IP Bandwidth (Mbps)" : "bandwidth",

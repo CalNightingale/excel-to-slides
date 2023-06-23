@@ -1,3 +1,5 @@
-python-pptx
 pandas
 openpyxl
+pywin32
+geopandas
+matplotlib

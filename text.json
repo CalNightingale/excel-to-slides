@@ -1,8 +1,9 @@
 {
-    "title": "Appendix: Provider Detail - {provider}", 
+    "title": "Appendix: Provider Detail - {provider}",
     "header": "{provider} quoted {prod_type} for {mkt}", 
     "ip_text": "Quoted ${ip_mrc}/Mbps up to {bandwidth} Mbps. Burstable at a rate of ${burstrate}/Mbps", 
     "xc_text": "Cross Connects are available at a rate of ${xc_mrc}/unit, with a total NRC of ${xc_nrc}", 
     "rh_text": "Remote Hands Services are available at a rate of ${rh_business} during business hours and ${rh_offbusiness} otherwise", 
-    "cc_text": "Offered Cloud Connect services at {cc_bandwidth}Mbps. Quoted Azure at ${azure_mrc} and AWS at ${aws_mrc}. NRCs of ${azure_nrc} and ${aws_nrc} respectively"
+    "cc_text": "Offered Cloud Connect services at {cc_bandwidth}Mbps. Quoted Azure at ${azure_mrc} and AWS at ${aws_mrc}. NRCs of ${azure_nrc} and ${aws_nrc} respectively",
+    "sales_text": "Sales Process: TODO FILL IN\nSales Rep: TODO FILL IN\nContract Term: {term}-month term"
 }
