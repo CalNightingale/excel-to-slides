@@ -3,7 +3,8 @@ import utils
 import json
 
 class Powerpoint:
-    def __init__(self, pptx_path):
+    def __init__(self, pptx_path, template_index=1):
+        self.template_index = template_index
         self.pptx_path = pptx_path
         self.instance = win32com.client.Dispatch("PowerPoint.Application")
         self.presentation = self.instance.Presentations.Open(pptx_path, WithWindow=False)
@@ -17,19 +18,20 @@ class Powerpoint:
         self.instance.Quit()
         print("Quit out cleanly")
 
-    def update_text(self, slide_index, element_name, new_text):
-        slide = self.presentation.Slides(slide_index)
+    def new_slide(self):
+        return self.presentation.Slides(self.template_index).Duplicate()
+
+    def update_text(self, slide, element_name, new_text):
         element = slide.Shapes(element_name)
         if not element.HasTextFrame:
             raise Exception(f"Tried to set text for element '{element}' which does not have a text field")
         element.TextFrame.TextRange.Text = new_text
 
-    def update_other(self, slide_index, element_name, data, function_name):
+    def update_other(self, slide, element_name, data, function_name):
         try:
             function = getattr(utils, function_name)
         except:
             raise Exception(f"Failed to get function '{function_name}'... are you sure it is in utils.py?")
-        slide = self.presentation.Slides(slide_index)
         element = slide.Shapes(element_name)
         function(slide, element, data)
 
@@ -47,16 +49,11 @@ class Powerpoint:
             transposed_list.append(transposed_sublist)
         return transposed_list
 
-    def set_chart_data(self, pptx_path : str, slide_index : int, chart_name : str, data):
-        values_for_chart = self.pivot_input_data(data)
-        # Get a reference to the slide containing the chart
-        slide = self.presentation.Slides(slide_index)
-        print("Retrieved slide")
-
+    def set_chart_data(self, pptx_path : str, slide, chart_name : str, data):
+        values_for_chart = self.pivot_input_data(data)\
         # Identify the chart shape on the slide
         shape = slide.Shapes(chart_name)
         print("Retrieved shape")
-
         # Retrieve the chart object from the shape
         chart = shape.Chart
         print("Retrieved chart")

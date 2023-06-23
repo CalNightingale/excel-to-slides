@@ -66,7 +66,8 @@ def handle_mkt_map(slide, element, provider_data):
     for state_abbreviation in provider_data.get('state'):
         full_name = state_abbreviation_to_name.get(state_abbreviation)
         if not full_name:
-            raise Exception(f"Failed to find full name for state abbreviation '{state_abbreviation}'")
+            print(f"Skipping map for provider {provider_data.get('provider')}; failed to find full name for state abbreviation '{state_abbreviation}'")
+            return
         states_present.append(full_name)
 
     # Read in geoJSON
