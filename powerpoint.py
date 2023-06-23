@@ -53,11 +53,8 @@ class Powerpoint:
         values_for_chart = self.pivot_input_data(data)\
         # Identify the chart shape on the slide
         shape = slide.Shapes(chart_name)
-        print("Retrieved shape")
         # Retrieve the chart object from the shape
         chart = shape.Chart
-        print("Retrieved chart")
-
         try:
             # Modify the chart data
             chart.ChartData.Activate()  # Activate the chart data worksheet
@@ -67,8 +64,5 @@ class Powerpoint:
             data_range.Value = values_for_chart           
             # Close the workbook
             chart.ChartData.Workbook.Close()
-            
         except Exception as e:
             print("An error occurred:", str(e))
-
-        print("Chart modified and saved successfully")

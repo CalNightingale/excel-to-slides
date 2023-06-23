@@ -64,6 +64,7 @@ def handle_mkt_map(slide, element, provider_data):
     # Parse states from provider data
     states_present = []
     for state_abbreviation in provider_data.get('state'):
+        print(f"Handling state {state_abbreviation}")
         full_name = state_abbreviation_to_name.get(state_abbreviation)
         if not full_name:
             print(f"Skipping map for provider {provider_data.get('provider')}; failed to find full name for state abbreviation '{state_abbreviation}'")
