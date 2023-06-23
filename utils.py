@@ -4,50 +4,109 @@ import json
 import os
 import pandas as pd
 
-def handle_mkt_map(slide, element, provider_data):
-    name = element.name
+state_abbreviation_to_name = {
+    'AL': 'Alabama',
+    'AK': 'Alaska',
+    'AZ': 'Arizona',
+    'AR': 'Arkansas',
+    'CA': 'California',
+    'CO': 'Colorado',
+    'CT': 'Connecticut',
+    'DE': 'Delaware',
+    'FL': 'Florida',
+    'GA': 'Georgia',
+    'HI': 'Hawaii',
+    'ID': 'Idaho',
+    'IL': 'Illinois',
+    'IN': 'Indiana',
+    'IA': 'Iowa',
+    'KS': 'Kansas',
+    'KY': 'Kentucky',
+    'LA': 'Louisiana',
+    'ME': 'Maine',
+    'MD': 'Maryland',
+    'MA': 'Massachusetts',
+    'MI': 'Michigan',
+    'MN': 'Minnesota',
+    'MS': 'Mississippi',
+    'MO': 'Missouri',
+    'MT': 'Montana',
+    'NE': 'Nebraska',
+    'NV': 'Nevada',
+    'NH': 'New Hampshire',
+    'NJ': 'New Jersey',
+    'NM': 'New Mexico',
+    'NY': 'New York',
+    'NC': 'North Carolina',
+    'ND': 'North Dakota',
+    'OH': 'Ohio',
+    'OK': 'Oklahoma',
+    'OR': 'Oregon',
+    'PA': 'Pennsylvania',
+    'RI': 'Rhode Island',
+    'SC': 'South Carolina',
+    'SD': 'South Dakota',
+    'TN': 'Tennessee',
+    'TX': 'Texas',
+    'UT': 'Utah',
+    'VT': 'Vermont',
+    'VA': 'Virginia',
+    'WA': 'Washington',
+    'WV': 'West Virginia',
+    'WI': 'Wisconsin',
+    'WY': 'Wyoming',
+    'ON': 'Ontario'
+}
 
-    # Read geoJSON
+def handle_mkt_map(slide, element, provider_data):
+    present_color = '#104a4a'
+    absent_color = '#d4dddf'
+    # Parse states from provider data
+    states_present = []
+    for state_abbreviation in provider_data.get('state'):
+        full_name = state_abbreviation_to_name.get(state_abbreviation)
+        if not full_name:
+            raise Exception(f"Failed to find full name for state abbreviation '{state_abbreviation}'")
+        states_present.append(full_name)
+
+    # Read in geoJSON
     usa_url = "https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json"
     canada_url = "https://raw.githubusercontent.com/codeforgermany/click_that_hood/main/public/data/canada.geojson"
     usa_gdf = gpd.read_file(usa_url)
     canada_gdf = gpd.read_file(canada_url)
-
-
-
     # Parse down to only desired geography
     contiguous_usa_gdf = usa_gdf[usa_gdf['name'].isin(['Alaska', 'Hawaii', "Puerto Rico"]) == False]
     ontario_gdf = canada_gdf[canada_gdf['name'] == 'Ontario']
+    hawaii = usa_gdf[usa_gdf['name'] == 'Hawaii']
     # Convert to projection (make it a little curved)
     target_projection = 5070  # Alberts Equal Area Conic Projection
     projected_usa = contiguous_usa_gdf.to_crs(target_projection)
     projected_ontario = ontario_gdf.to_crs(target_projection)
-
-    # Shift the geometry of Hawaii to custom position below NM 
-    hawaii = usa_gdf[usa_gdf['name'] == 'Hawaii'].copy()
     projected_hawaii = hawaii.to_crs(target_projection)
+    # Add presence column for contiguous USA
+    projected_usa['presence'] = projected_usa['name'].apply(lambda x: True if x in states_present else False)
+    # Shift the geometry of Hawaii to custom position below NM (change offset and rotation to modify position)
     projected_hawaii['geometry'] = projected_hawaii['geometry'].translate(xoff=4600000, yoff=-1400000)
     projected_hawaii['geometry'] = projected_hawaii['geometry'].rotate(35)
     # Plot
     fig, ax = plt.subplots(figsize=(10, 8))
     ax.set_aspect('auto')
     ax.axis('off')
-    projected_usa.plot(ax=ax, color='lightgray', edgecolor='white')
-    projected_hawaii.plot(ax=ax, color='lightgray', edgecolor='white')
-    projected_ontario.plot(ax=ax, color='lightblue', edgecolor='white')
+    projected_usa.plot(ax=ax, color=absent_color, edgecolor='white')
+    projected_usa[projected_usa['presence']].plot(ax=ax, color=present_color, edgecolor='white')
+    projected_hawaii.plot(ax=ax, color=present_color if 'Hawaii' in states_present else absent_color, edgecolor='white')
+    projected_ontario.plot(ax=ax, color=present_color if 'Ontario' in states_present else absent_color, edgecolor='white')
     # Save
     plt.savefig('plot.png', dpi=300, bbox_inches='tight')
     plt.close()
 
-    # Update image
-    left = element.left
-    top = element.top
+    # Replace image
     image_path = os.path.abspath("plot.png")
     new_element = slide.Shapes.AddPicture(FileName=image_path, LinkToFile=False,
                                           SaveWithDocument=True, Left=element.left,
                                           Top=element.top, Width=element.width, Height=element.height)
+    new_element.name = element.name
     element.Delete()
-    new_element.name = name
 
 
 """
