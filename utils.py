@@ -23,16 +23,18 @@ def handle_mkt_map(slide, element, provider_data):
     projected_usa = contiguous_usa_gdf.to_crs(target_projection)
     projected_ontario = ontario_gdf.to_crs(target_projection)
 
-    # TODO Shift the geometry of Hawaii to custom position below NM 
-    #shifted_hawaii = usa_gdf[usa_gdf['name'] == 'Hawaii'].copy()
-    #shifted_hawaii['geometry'] = shifted_hawaii['geometry'].translate(xoff=1000000, yoff=0)
+    # Shift the geometry of Hawaii to custom position below NM 
+    hawaii = usa_gdf[usa_gdf['name'] == 'Hawaii'].copy()
+    projected_hawaii = hawaii.to_crs(target_projection)
+    projected_hawaii['geometry'] = projected_hawaii['geometry'].translate(xoff=4600000, yoff=-1400000)
+    projected_hawaii['geometry'] = projected_hawaii['geometry'].rotate(35)
     # Plot
     fig, ax = plt.subplots(figsize=(10, 8))
     ax.set_aspect('auto')
     ax.axis('off')
-    projected_usa.plot(ax=ax, color='lightgray', edgecolor='black')
-    #shifted_hawaii.plot(ax=ax, color='lightgray', edgecolor='black')
-    projected_ontario.plot(ax=ax, color='lightblue', edgecolor='black')
+    projected_usa.plot(ax=ax, color='lightgray', edgecolor='white')
+    projected_hawaii.plot(ax=ax, color='lightgray', edgecolor='white')
+    projected_ontario.plot(ax=ax, color='lightblue', edgecolor='white')
     # Save
     plt.savefig('plot.png', dpi=300, bbox_inches='tight')
     plt.close()
