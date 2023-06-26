@@ -1,6 +1,7 @@
 import win32com.client
 import utils
 import json
+from openpyxl.utils import get_column_letter
 
 class Powerpoint:
     def __init__(self, pptx_path, template_index=1):
@@ -59,7 +60,15 @@ class Powerpoint:
             # Modify the chart data
             chart.ChartData.Activate()  # Activate the chart data worksheet
             # Access the specific range where the data is stored
-            data_range = chart.ChartData.Workbook.Worksheets(1).Range("A2:B4")           
+            # Clear existing data
+            previous_range = chart.ChartData.Workbook.Worksheets(1).Range("A2:Z100")
+            previous_range.ClearContents()
+
+            num_rows = len(values_for_chart)
+            num_cols = len(values_for_chart[0])
+            range_string = f"A2:{get_column_letter(num_cols)}{num_rows + 1}"
+            print(range_string)
+            data_range = chart.ChartData.Workbook.Worksheets(1).Range(range_string)           
             # Update the values in the range
             data_range.Value = values_for_chart           
             # Close the workbook
