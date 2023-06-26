@@ -3,17 +3,18 @@ import pretty_errors # TODO REMOVE
 import collections
 import collections.abc
 import json
+import os
 import pandas as pd
 from powerpoint import Powerpoint
 
 # IMPORTANT: MUST NAME SLIDE SHAPES https://www.youtube.com/watch?v=IhES3of_9Nw
 
-EXCEL_FILEPATH = "//ACM4/atlanticfiles/Projects/2023 files/EdgeConneX Colo Mystery Shopping - 23024/Cal_verify_quotes_sterilized.xlsx"
-PPTX_PATH = r"C:/Users/cnightingale/excel2slides/template_slide.pptx"
-EXCEL_SHEET_NAME = "Raw Data"
-HEADER_ROW = 3
-TARGET_COLUMN = "Provider"
-SEARCH_TERM = "Cyrus"
+# Load config file
+with open("config.json", "r") as config_file:
+    config = json.load(config_file)
+# Make sure it's valid
+assert(os.path.exists(config.get("template_path")))
+assert(os.path.exists(config.get("excel_path")))
 
 with open("columns.json", "r") as columns_file:
     RELEVANT_COLUMNS = json.load(columns_file)
@@ -70,14 +71,12 @@ def update_charts(pptx : Powerpoint, slide, provider_data : dict) -> None:
         for i, value in enumerate(values):
             if len(value) == 1:
                 values[i] = value * max_len
-        pptx.set_chart_data(PPTX_PATH, slide, chart_name, values)
+        pptx.set_chart_data(slide, chart_name, values)
 
 def update_other(pptx: Powerpoint, slide, provider_data : dict) -> None:
     for element_name, function_name in OTHER.items():
         pptx.update_other(slide, element_name, provider_data, function_name)
 
-# TODO Add slide duplication when they resolve this git issue https://github.com/scanny/python-pptx/issues/132
-# Until then, workaround is to manually copy/paste the template slide n times
 def update_text(pptx : Powerpoint, slide, provider_data) -> None:
     for element_name, fstring in ELEMENT_TO_FSTRING.items():
         text = fstring.format(**provider_data)
@@ -85,7 +84,8 @@ def update_text(pptx : Powerpoint, slide, provider_data) -> None:
 
 def generate_slide(pptx, slide, provider):
     print(f"Generating slide for provider '{provider}'")
-    provider_data = search_excel_sheet(EXCEL_FILEPATH, EXCEL_SHEET_NAME, HEADER_ROW, TARGET_COLUMN, provider)
+    provider_data = search_excel_sheet(config.get("excel_path"), config.get("sheet_name"),
+                                       config.get("header_row") - 1, config.get("target_column"), provider)
 
     # Manipulate slide
     print("Updating text objects")
@@ -98,17 +98,17 @@ def generate_slide(pptx, slide, provider):
 
 def generate_all_slides():
     # get all providers
-    all_excel_data = pd.read_excel(EXCEL_FILEPATH, sheet_name=EXCEL_SHEET_NAME, header=HEADER_ROW)
+    all_excel_data = pd.read_excel(config.get("excel_path"), sheet_name=config.get("sheet_name"),
+                                   header=config.get("header_row") - 1)
     all_providers = all_excel_data['Provider'].unique()
     all_providers.sort()
     del all_excel_data
     print(f"Found {len(all_providers)} slides to generate")
     # Create powerpoint
-    pptx = Powerpoint(r"C:/Users/cnightingale/excel2slides/template_slide.pptx")
+    pptx = Powerpoint(config.get("template_path"), config.get("output_path"))
     for provider in all_providers:
         slide = pptx.new_slide()
         generate_slide(pptx, slide, provider)
     pptx.close()
-
 
 generate_all_slides()

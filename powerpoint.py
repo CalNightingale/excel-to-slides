@@ -4,15 +4,16 @@ import json
 from openpyxl.utils import get_column_letter
 
 class Powerpoint:
-    def __init__(self, pptx_path, template_index=1):
+    def __init__(self, template_path, output_path, template_index=1):
         self.template_index = template_index
-        self.pptx_path = pptx_path
+        self.template_path = template_path
+        self.output_path = output_path
         self.instance = win32com.client.Dispatch("PowerPoint.Application")
-        self.presentation = self.instance.Presentations.Open(pptx_path, WithWindow=False)
+        self.presentation = self.instance.Presentations.Open(template_path, WithWindow=False)
 
     def close(self):
         # Save the presentation
-        self.presentation.SaveAs(r"C:/Users/cnightingale/excel2slides/template_slide_modified.pptx")
+        self.presentation.SaveAs(self.output_path)
         # Close the presentation
         self.presentation.Close()
         # Quit the PowerPoint application
@@ -50,7 +51,7 @@ class Powerpoint:
             transposed_list.append(transposed_sublist)
         return transposed_list
 
-    def set_chart_data(self, pptx_path : str, slide, chart_name : str, data):
+    def set_chart_data(self, slide, chart_name : str, data):
         values_for_chart = self.pivot_input_data(data)\
         # Identify the chart shape on the slide
         shape = slide.Shapes(chart_name)
