@@ -100,11 +100,12 @@ def generate_all_slides():
     # get all providers
     all_excel_data = pd.read_excel(EXCEL_FILEPATH, sheet_name=EXCEL_SHEET_NAME, header=HEADER_ROW)
     all_providers = all_excel_data['Provider'].unique()
+    all_providers.sort()
     del all_excel_data
+    print(f"Found {len(all_providers)} slides to generate")
     # Create powerpoint
     pptx = Powerpoint(r"C:/Users/cnightingale/excel2slides/template_slide.pptx")
-    for provider in ['Zenlayer']:
-    #for provider in all_providers:
+    for provider in all_providers:
         slide = pptx.new_slide()
         generate_slide(pptx, slide, provider)
     pptx.close()
