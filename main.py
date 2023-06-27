@@ -95,18 +95,19 @@ def generate_slide(pptx, slide, provider):
     print(f"Completed slide for provider '{provider}'")
 
 def generate_all_slides():
-    # get all providers
+    # get all slides
     all_excel_data = pd.read_excel(config.get("excel_path"), sheet_name=config.get("sheet_name"),
                                    header=config.get("header_row") - 1)
-    all_providers = all_excel_data['Provider'].unique()
-    all_providers.sort()
+    all_targets = list(all_excel_data[config.get("target_column")].unique())
+    # New slides get inserted at index 1; iterate in reverse to get proper order
+    all_targets.sort(reverse=True) 
     del all_excel_data
-    print(f"Found {len(all_providers)} slides to generate")
+    print(f"Found {len(all_targets)} slides to generate")
     # Create powerpoint
     pptx = Powerpoint(config.get("template_path"), config.get("output_path"))
-    for provider in all_providers:
+    for target in all_targets:
         slide = pptx.new_slide()
-        generate_slide(pptx, slide, provider)
+        generate_slide(pptx, slide, target)
     pptx.close()
 
 generate_all_slides()
