@@ -68,7 +68,6 @@ class Powerpoint:
             num_rows = len(values_for_chart)
             num_cols = len(values_for_chart[0])
             range_string = f"A2:{get_column_letter(num_cols)}{num_rows + 1}"
-            print(range_string)
             data_range = chart.ChartData.Workbook.Worksheets(1).Range(range_string)           
             # Update the values in the range
             data_range.Value = values_for_chart           
