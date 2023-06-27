@@ -60,10 +60,10 @@ def get_shape_by_name(slide, shape_name):
     # If not found, now check shapes (recursively to check groups)
     return find_shape_in_group(slide, shape_name)
 
-def update_charts(pptx : Powerpoint, slide, provider_data : dict) -> None:
+def update_charts(pptx : Powerpoint, slide, target_data : dict) -> None:
     for chart_name, data_cols in CHARTS.items():
         # Retrieve data for chart as per charts.json
-        values = [provider_data.get(data_col) for data_col in data_cols]
+        values = [target_data.get(data_col) for data_col in data_cols]
         # Un-collapse data if values for different categories were identical
         max_len = max([len(col) for col in values])
         for i, value in enumerate(values):
@@ -71,28 +71,28 @@ def update_charts(pptx : Powerpoint, slide, provider_data : dict) -> None:
                 values[i] = value * max_len
         pptx.set_chart_data(slide, chart_name, values)
 
-def update_other(pptx: Powerpoint, slide, provider_data : dict) -> None:
+def update_other(pptx: Powerpoint, slide, target_data : dict) -> None:
     for element_name, function_name in OTHER.items():
-        pptx.update_other(slide, element_name, provider_data, function_name)
+        pptx.update_other(slide, element_name, target_data, function_name)
 
-def update_text(pptx : Powerpoint, slide, provider_data) -> None:
+def update_text(pptx : Powerpoint, slide, target_data) -> None:
     for element_name, fstring in ELEMENT_TO_FSTRING.items():
-        text = fstring.format(**provider_data)
+        text = fstring.format(**target_data)
         pptx.update_text(slide, element_name, text)
 
-def generate_slide(pptx, slide, provider):
-    print(f"Generating slide for provider '{provider}'")
-    provider_data = search_excel_sheet(config.get("excel_path"), config.get("sheet_name"),
-                                       config.get("header_row") - 1, config.get("target_column"), provider)
+def generate_slide(pptx, slide, target):
+    print(f"Generating slide for target '{target}'")
+    target_data = search_excel_sheet(config.get("excel_path"), config.get("sheet_name"),
+                                       config.get("header_row") - 1, config.get("target_column"), target)
 
     # Manipulate slide
     print("Updating text objects")
-    update_text(pptx, slide, provider_data)
+    update_text(pptx, slide, target_data)
     print("Updating charts")   
-    update_charts(pptx, slide, provider_data)
+    update_charts(pptx, slide, target_data)
     print("Updating other")
-    update_other(pptx, slide, provider_data)
-    print(f"Completed slide for provider '{provider}'")
+    update_other(pptx, slide, target_data)
+    print(f"Completed slide for provider '{target}'")
 
 def generate_all_slides():
     # get all slides

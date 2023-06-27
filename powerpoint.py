@@ -39,7 +39,6 @@ class Powerpoint:
         element = slide.Shapes(element_name)
         function(slide, element, data)
 
-
     def pivot_input_data(self, data):
         transposed_list = []
         # Get the length of the sublists
