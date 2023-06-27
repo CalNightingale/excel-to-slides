@@ -103,11 +103,12 @@ def generate_all_slides():
     all_targets.sort(reverse=True) 
     del all_excel_data
     print(f"Found {len(all_targets)} slides to generate")
-    # Create powerpoint
+    # Generate slides
     pptx = Powerpoint(config.get("template_path"), config.get("output_path"))
     for target in all_targets:
         slide = pptx.new_slide()
         generate_slide(pptx, slide, target)
+    # Save and close
     pptx.close()
 
 generate_all_slides()

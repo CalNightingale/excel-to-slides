@@ -12,6 +12,8 @@ class Powerpoint:
         self.presentation = self.instance.Presentations.Open(template_path, WithWindow=False)
 
     def close(self):
+        # Remove template slide
+        self.presentation.Slides(self.template_index).Delete()
         # Save the presentation
         self.presentation.SaveAs(self.output_path)
         # Close the presentation
