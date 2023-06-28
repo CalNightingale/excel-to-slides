@@ -6,6 +6,7 @@ import os
 import requests
 import pandas as pd
 from bs4 import BeautifulSoup
+from PIL import Image
 
 state_abbreviation_to_name = {
     'AL': 'Alabama',
@@ -135,6 +136,12 @@ def handle_mkt_presence_table(slide, element, data):
                 table.Cell(row_index, 2).Shape.TextFrame.TextRange.Text = presence_indication_character
                 table.Cell(row_index, 3).Shape.TextFrame.TextRange.Text = presence_indication_character
 
+# Helper method to get aspect ratio of image
+def get_aspect_ratio(image_path):
+    with Image.open(image_path) as image:
+        width, height = image.size
+        aspect_ratio = width / height
+        return aspect_ratio
 
 """
 This method is for fetching provider logos from the internet automatically.
@@ -184,6 +191,13 @@ def handle_logo(slide, element, data):
     image_data = requests.get(full_res_images[0]).content
     with open('logo.png', 'wb') as writer:
         writer.write(image_data)
-
-
-
+    # Replace image
+    image_path = os.path.abspath("logo.png")
+    aspect_ratio = get_aspect_ratio("logo.png")
+    # Image should be the same width as the template logo but should maintain aspect ratio
+    new_element = slide.Shapes.AddPicture(FileName=image_path, LinkToFile=False,
+                                          SaveWithDocument=True, Left=element.left,
+                                          Top=element.top, Width=element.width,
+                                          Height=element.width / aspect_ratio)
+    new_element.name = element.name
+    element.Delete()
