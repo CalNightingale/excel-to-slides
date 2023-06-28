@@ -3,3 +3,4 @@ openpyxl
 pywin32
 geopandas
 matplotlib
+bs4

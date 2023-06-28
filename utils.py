@@ -1,8 +1,11 @@
+import re
 import geopandas as gpd
 import matplotlib.pyplot as plt
 import json
 import os
+import requests
 import pandas as pd
+from bs4 import BeautifulSoup
 
 state_abbreviation_to_name = {
     'AL': 'Alabama',
@@ -58,13 +61,13 @@ state_abbreviation_to_name = {
     'ON': 'Ontario'
 }
 
-def handle_mkt_map(slide, element, provider_data):
+def handle_mkt_map(slide, element, data):
     present_color = '#104a4a'
     absent_color = '#d4dddf'
     # Parse states from provider data
     states_present = []
     # Multiple states present, loop thru them all
-    for state_abbreviation in provider_data.get('state'):
+    for state_abbreviation in data.get('state'):
         full_name = state_abbreviation_to_name.get(state_abbreviation)
         if not full_name:
             raise Exception(f"Failed to find full name for state abbreviation '{state_abbreviation}'")
@@ -119,7 +122,7 @@ To update, we need to
     (2) for each market row, check to see if the markets names we pulled from the excel match up
     (3) for each match, add a check mark to both presence? and quoted?
 """
-def handle_mkt_presence_table(slide, element, provider_data):
+def handle_mkt_presence_table(slide, element, data):
     table = element.Table
     presence_indication_character = "✔"
     for row_index in range(1, len(table.Rows) + 1):
@@ -127,7 +130,60 @@ def handle_mkt_presence_table(slide, element, provider_data):
         table.Cell(row_index, 2).Shape.TextFrame.TextRange.Text = ""
         table.Cell(row_index, 3).Shape.TextFrame.TextRange.Text = ""
         market_cell_text = market_cell.Shape.TextFrame.TextRange.Text
-        for market in provider_data.get("mkt"):
+        for market in data.get("mkt"):
             if market.lower() in market_cell_text.lower():
                 table.Cell(row_index, 2).Shape.TextFrame.TextRange.Text = presence_indication_character
                 table.Cell(row_index, 3).Shape.TextFrame.TextRange.Text = presence_indication_character
+
+
+"""
+This method is for fetching provider logos from the internet automatically.
+It does this by getting the link to the first image returned by searching for 
+"{provider name} logo" on google images with the transparent background tool enabled.
+It then downloads this image and updates the logo element accordingly
+"""
+def handle_logo(slide, element, data):
+    # Generate http request
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36"
+    }
+    company_name = data.get('provider')[0]
+    params = {    
+        "q": f"{company_name}+logo",    # search query
+        "tbm": "isch",                  # image results
+        "tbs": "ic:trans",              # transparent results only
+        "hl": "en",                     # language of the search
+        "gl": "us"                      # country where search comes from
+    }
+    # Send request
+    html = requests.get("https://google.com/search", params=params, headers=headers, timeout=30)
+
+    # Parse result
+    soup = BeautifulSoup(html.text, "lxml")
+    all_script_tags = soup.select("script")
+    # https://regex101.com/r/RPIbXK/1
+    matched_images_data = "".join(re.findall(r"AF_initDataCallback\(([^<]+)\);", str(all_script_tags)))
+    matched_images_data_fix = json.dumps(matched_images_data)
+    matched_images_data_json = json.loads(matched_images_data_fix)
+
+    # https://regex101.com/r/NRKEmV/1
+    matched_google_image_data = re.findall(r'\"b-GRID_STATE0\"(.*)sideChannel:\s?{}}', matched_images_data_json)
+                
+    # Remove previously matched thumbnails for easier full resolution image matches
+    removed_matched_google_images_thumbnails = re.sub(
+            r'\[\"(https\:\/\/encrypted-tbn0\.gstatic\.com\/images\?.*?)\",\d+,\d+\]', "", str(matched_google_image_data))
+        
+    # https://regex101.com/r/fXjfb1/4
+    # https://stackoverflow.com/a/19821774/15164646
+    matched_google_full_resolution_images = re.findall(r"(?:'|,),\[\"(https:|http.*?)\",\d+,\d+\]", removed_matched_google_images_thumbnails)
+
+    full_res_images = [
+            bytes(bytes(img, "ascii").decode("unicode-escape"), "ascii").decode("unicode-escape") for img in matched_google_full_resolution_images
+    ]
+    # Choose the first image returned
+    image_data = requests.get(full_res_images[0]).content
+    with open('logo.png', 'wb') as writer:
+        writer.write(image_data)
+
+
+
