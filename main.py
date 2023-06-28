@@ -89,7 +89,7 @@ def generate_slide(pptx, slide, target):
     print("Updating text objects")
     update_text(pptx, slide, target_data)
     print("Updating charts")   
-    #update_charts(pptx, slide, target_data)
+    update_charts(pptx, slide, target_data)
     print("Updating other")
     update_other(pptx, slide, target_data)
     print(f"Completed slide for provider '{target}'")
@@ -105,8 +105,7 @@ def generate_all_slides():
     print(f"Found {len(all_targets)} slides to generate")
     # Generate slides
     pptx = Powerpoint(config.get("template_path"), config.get("output_path"))
-    #for target in all_targets:
-    for target in ['Equinix']:
+    for target in all_targets:
         slide = pptx.new_slide()
         generate_slide(pptx, slide, target)
     # Save and close

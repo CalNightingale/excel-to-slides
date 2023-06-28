@@ -150,54 +150,58 @@ It does this by getting the link to the first image returned by searching for
 It then downloads this image and updates the logo element accordingly
 """
 def handle_logo(slide, element, data):
-    # Generate http request
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36"
-    }
-    company_name = data.get('provider')[0]
-    params = {    
-        "q": f"{company_name}+logo",    # search query
-        "tbm": "isch",                  # image results
-        "tbs": "ic:trans",              # transparent results only
-        "hl": "en",                     # language of the search
-        "gl": "us"                      # country where search comes from
-    }
-    # Send request
-    html = requests.get("https://google.com/search", params=params, headers=headers, timeout=30)
+    try:
+        # Generate http request
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36"
+        }
+        company_name = data.get('provider')[0]
+        params = {    
+            "q": f"{company_name}+data+logo",   # search query
+            "tbm": "isch",                      # image results
+            "tbs": "ic:trans",                  # transparent results only
+            "hl": "en",                         # language of the search
+            "gl": "us"                          # country where search comes from
+        }
+        # Send request
+        html = requests.get("https://google.com/search", params=params, headers=headers, timeout=30)
 
-    # Parse result
-    soup = BeautifulSoup(html.text, "lxml")
-    all_script_tags = soup.select("script")
-    # https://regex101.com/r/RPIbXK/1
-    matched_images_data = "".join(re.findall(r"AF_initDataCallback\(([^<]+)\);", str(all_script_tags)))
-    matched_images_data_fix = json.dumps(matched_images_data)
-    matched_images_data_json = json.loads(matched_images_data_fix)
+        # Parse result
+        soup = BeautifulSoup(html.text, "lxml")
+        all_script_tags = soup.select("script")
+        # https://regex101.com/r/RPIbXK/1
+        matched_images_data = "".join(re.findall(r"AF_initDataCallback\(([^<]+)\);", str(all_script_tags)))
+        matched_images_data_fix = json.dumps(matched_images_data)
+        matched_images_data_json = json.loads(matched_images_data_fix)
 
-    # https://regex101.com/r/NRKEmV/1
-    matched_google_image_data = re.findall(r'\"b-GRID_STATE0\"(.*)sideChannel:\s?{}}', matched_images_data_json)
-                
-    # Remove previously matched thumbnails for easier full resolution image matches
-    removed_matched_google_images_thumbnails = re.sub(
-            r'\[\"(https\:\/\/encrypted-tbn0\.gstatic\.com\/images\?.*?)\",\d+,\d+\]', "", str(matched_google_image_data))
-        
-    # https://regex101.com/r/fXjfb1/4
-    # https://stackoverflow.com/a/19821774/15164646
-    matched_google_full_resolution_images = re.findall(r"(?:'|,),\[\"(https:|http.*?)\",\d+,\d+\]", removed_matched_google_images_thumbnails)
+        # https://regex101.com/r/NRKEmV/1
+        matched_google_image_data = re.findall(r'\"b-GRID_STATE0\"(.*)sideChannel:\s?{}}', matched_images_data_json)
+                    
+        # Remove previously matched thumbnails for easier full resolution image matches
+        removed_matched_google_images_thumbnails = re.sub(
+                r'\[\"(https\:\/\/encrypted-tbn0\.gstatic\.com\/images\?.*?)\",\d+,\d+\]', "", str(matched_google_image_data))
+            
+        # https://regex101.com/r/fXjfb1/4
+        # https://stackoverflow.com/a/19821774/15164646
+        matched_google_full_resolution_images = re.findall(r"(?:'|,),\[\"(https:|http.*?)\",\d+,\d+\]", removed_matched_google_images_thumbnails)
 
-    full_res_images = [
-            bytes(bytes(img, "ascii").decode("unicode-escape"), "ascii").decode("unicode-escape") for img in matched_google_full_resolution_images
-    ]
-    # Choose the first image returned
-    image_data = requests.get(full_res_images[0]).content
-    with open('logo.png', 'wb') as writer:
-        writer.write(image_data)
-    # Replace image
-    image_path = os.path.abspath("logo.png")
-    aspect_ratio = get_aspect_ratio("logo.png")
-    # Image should be the same width as the template logo but should maintain aspect ratio
-    new_element = slide.Shapes.AddPicture(FileName=image_path, LinkToFile=False,
-                                          SaveWithDocument=True, Left=element.left,
-                                          Top=element.top, Width=element.width,
-                                          Height=element.width / aspect_ratio)
-    new_element.name = element.name
-    element.Delete()
+        full_res_images = [
+                bytes(bytes(img, "ascii").decode("unicode-escape"), "ascii").decode("unicode-escape") for img in matched_google_full_resolution_images
+        ]
+        # Choose the first image returned
+        image_data = requests.get(full_res_images[0]).content
+        with open('logo.png', 'wb') as writer:
+            writer.write(image_data)
+        # Replace image
+
+        image_path = os.path.abspath("logo.png")
+        aspect_ratio = get_aspect_ratio("logo.png")
+        # Image should be the same width as the template logo but should maintain aspect ratio
+        new_element = slide.Shapes.AddPicture(FileName=image_path, LinkToFile=False,
+                                            SaveWithDocument=True, Left=element.left,
+                                            Top=element.top, Width=element.width,
+                                            Height=element.width / aspect_ratio)
+        new_element.name = element.name
+        element.Delete()
+    except:
+        print("Failed to fetch logo. Not updating!")
