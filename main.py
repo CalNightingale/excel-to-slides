@@ -105,7 +105,8 @@ def generate_all_slides():
     print(f"Found {len(all_targets)} slides to generate")
     # Generate slides
     pptx = Powerpoint(config.get("template_path"), config.get("output_path"))
-    for target in all_targets:
+    #for target in all_targets:
+    for target in ['Digital Realty']:
         slide = pptx.new_slide()
         generate_slide(pptx, slide, target)
     # Save and close

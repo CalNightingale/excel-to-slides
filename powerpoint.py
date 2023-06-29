@@ -1,6 +1,7 @@
 import win32com.client
 import utils
 import json
+from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
 
 class Powerpoint:
@@ -59,19 +60,27 @@ class Powerpoint:
         # Retrieve the chart object from the shape
         chart = shape.Chart
         try:
-            # Modify the chart data
-            chart.ChartData.Activate()  # Activate the chart data worksheet
-            # Access the specific range where the data is stored
+            # Load workbook
+            workbook_path = shape.LinkFormat.SourceFullName
+            print(workbook_path)
+            wb = load_workbook(workbook_path)
+            ws = wb.active
+            table = ws.tables['data']
             # Clear existing data
-            previous_range = chart.ChartData.Workbook.Worksheets(1).Range("A2:Z100")
-            previous_range.ClearContents()
-
+            ws.delete_rows(2,1000) # Assumption is no chart will utilize more than 1000 rows, can increase this if necessary
+            # Resize the table
             num_rows = len(values_for_chart)
             num_cols = len(values_for_chart[0])
-            range_string = f"A2:{get_column_letter(num_cols)}{num_rows + 1}"
-            data_range = chart.ChartData.Workbook.Worksheets(1).Range(range_string)           
+            range_string = f"A1:{get_column_letter(num_cols)}{num_rows + 1}"
+            table.ref = range_string        
             # Update the values in the range
-            data_range.Value = values_for_chart           
+            for row_index, row in enumerate(ws[range_string]):
+                # Skip header row
+                if row_index == 0:
+                    continue
+                for col_index, cell in enumerate(row):
+                    cell.value = values_for_chart[row_index][col_index]
+
             # Close the workbook
             chart.ChartData.Workbook.Close()
         except Exception as e:
